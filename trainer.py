@@ -76,6 +76,7 @@ class Trainer:
         # self.device = torch.device("cuda:{}".format(gpuid[0]))
         self.devices = [torch.device("cuda", rank) for rank in range(world_size)]
         self.gpuid = gpuid
+        self.net = net
 
         # mkdir the file of Experiment path
         if checkpoint and not os.path.exists(checkpoint):
