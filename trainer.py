@@ -182,7 +182,7 @@ class Trainer:
         current_step = 0
         for egs in train_dataloader:
             current_step += 1
-            egs = to_device(egs, self.device)
+            egs = to_device(egs, self.devices[rank])
             self.optimizer.zero_grad()
             ests = data_parallel(self.net, egs["mix"], device_ids=self.gpuid)
             loss = si_snr_loss(ests, egs)
@@ -226,7 +226,7 @@ class Trainer:
         with torch.no_grad():
             for egs in val_dataloader:
                 current_step += 1
-                egs = to_device(egs, self.device)
+                egs = to_device(egs, self.devices[rank])
                 ests = data_parallel(self.net, egs["mix"], device_ids=self.gpuid)
                 loss = si_snr_loss(ests, egs)
                 losses.append(loss.item())
