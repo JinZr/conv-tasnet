@@ -1,15 +1,17 @@
+import logging
 import os
 import time
 
 import matplotlib.pyplot as plt
 import torch
+from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.nn.parallel import data_parallel
 from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from conv_tasnet import check_parameters
 from si_snr import si_snr_loss
-from utils import get_logger
+from utils import cleanup_dist, get_logger, setup_dist
 
 
 def to_device(dicts, device):
@@ -130,7 +132,6 @@ class Trainer:
 
         # number of epoch
         self.num_epochs = num_epochs
-        self.mse = torch.nn.MSELoss()
 
     def create_optimizer(self, optimizer, kwargs, state=None):
         """
@@ -170,7 +171,7 @@ class Trainer:
             os.path.join(self.checkpoint, "{0}.pt".format("best" if best else "last")),
         )
 
-    def train(self, train_dataloader):
+    def train(self, train_dataloader, world_size=1, rank=0):
         """
         training model
         """
@@ -212,7 +213,7 @@ class Trainer:
         )
         return total_loss_avg
 
-    def val(self, val_dataloader):
+    def val(self, val_dataloader, world_size=1, rank=0):
         """
         validation model
         """
@@ -251,66 +252,74 @@ class Trainer:
         )
         return total_loss_avg
 
-    def run(self, train_dataloader, val_dataloader):
+    def run(self, rank, world_size, train_dataloader, val_dataloader):
         train_losses = []
         val_losses = []
+        if world_size > 1:
+            setup_dist(rank, world_size)
+            logging.info("Using DDP")
+            model = DDP(model, device_ids=[rank], find_unused_parameters=True)
 
-        with torch.cuda.device(self.gpuid[0]):
+        if rank == 0:
             self.save_checkpoint(best=False)
+        val_loss = self.val(val_dataloader)
+        best_loss = val_loss
+        self.logger.info(
+            "Starting epoch from {:d}, loss = {:.4f}".format(self.cur_epoch, best_loss)
+        )
+        no_impr = 0
+
+        self.scheduler.best = best_loss
+        while self.cur_epoch < self.num_epochs:
+            self.cur_epoch += 1
+            train_loss = self.train(train_dataloader)
             val_loss = self.val(val_dataloader)
-            best_loss = val_loss
-            self.logger.info(
-                "Starting epoch from {:d}, loss = {:.4f}".format(
-                    self.cur_epoch, best_loss
+
+            train_losses.append(train_loss)
+            val_losses.append(val_loss)
+
+            if val_loss > best_loss:
+                no_impr += 1
+                self.logger.info(
+                    "no improvement, best loss: {:.4f}".format(self.scheduler.best)
                 )
-            )
-            no_impr = 0
-
-            self.scheduler.best = best_loss
-            while self.cur_epoch < self.num_epochs:
-                self.cur_epoch += 1
-                train_loss = self.train(train_dataloader)
-                val_loss = self.val(val_dataloader)
-
-                train_losses.append(train_loss)
-                val_losses.append(val_loss)
-
-                if val_loss > best_loss:
-                    no_impr += 1
-                    self.logger.info(
-                        "no improvement, best loss: {:.4f}".format(self.scheduler.best)
+            else:
+                best_loss = val_loss
+                no_impr = 0
+                self.save_checkpoint(best=True)
+                self.logger.info(
+                    "Epoch: {:d}, now best loss change: {:.4f}".format(
+                        self.cur_epoch, best_loss
                     )
-                else:
-                    best_loss = val_loss
-                    no_impr = 0
-                    self.save_checkpoint(best=True)
-                    self.logger.info(
-                        "Epoch: {:d}, now best loss change: {:.4f}".format(
-                            self.cur_epoch, best_loss
-                        )
-                    )
-                # schedule here
-                self.scheduler.step(val_loss)
-                # save last checkpoint
-                self.save_checkpoint(best=False)
-                if no_impr == self.stop:
-                    self.logger.info(
-                        "Stop training cause no impr for {:d} epochs".format(no_impr)
-                    )
-                    break
-            self.logger.info(
-                "Training for {:d}/{:d} epoches done!".format(
-                    self.cur_epoch, self.num_epochs
                 )
+            # schedule here
+            self.scheduler.step(val_loss)
+            # save last checkpoint
+            self.save_checkpoint(best=False)
+            if no_impr == self.stop:
+                self.logger.info(
+                    "Stop training cause no impr for {:d} epochs".format(no_impr)
+                )
+                break
+        self.logger.info(
+            "Training for {:d}/{:d} epoches done!".format(
+                self.cur_epoch, self.num_epochs
             )
+        )
 
-        # loss image
-        plt.title("Loss of train and test")
-        x = [i for i in range(self.cur_epoch)]
-        plt.plot(x, train_losses, "b-", label="train_loss", linewidth=0.8)
-        plt.plot(x, val_losses, "c-", label="val_loss", linewidth=0.8)
-        plt.legend()
-        # plt.xticks(l, lx)
-        plt.ylabel("loss")
-        plt.xlabel("epoch")
-        plt.savefig("conv_tasnet_LRS.png")
+        logging.info("Done!")
+        if world_size > 1:
+            torch.distributed.barrier()
+            cleanup_dist()
+
+        if rank == 0:
+            # loss image
+            plt.title("Loss of train and test")
+            x = [i for i in range(self.cur_epoch)]
+            plt.plot(x, train_losses, "b-", label="train_loss", linewidth=0.8)
+            plt.plot(x, val_losses, "c-", label="val_loss", linewidth=0.8)
+            plt.legend()
+            # plt.xticks(l, lx)
+            plt.ylabel("loss")
+            plt.xlabel("epoch")
+            plt.savefig("conv_tasnet_LRS.png")

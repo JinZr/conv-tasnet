@@ -1,7 +1,6 @@
 import argparse
-import sys
 
-import torch
+import torch.multiprocessing as mp
 
 from conv_tasnet import ConvTasNet
 from dataloaders import make_dataloader
@@ -52,7 +51,23 @@ def main():
             len(train_loader), len(val_loader)
         )
     )
-    trainer.run(train_loader, val_loader)
+    world_size = opt["world_size"]
+
+    assert world_size >= 1
+    if world_size > 1:
+        mp.spawn(
+            trainer.run,
+            args=(world_size, train_loader, val_loader),
+            nprocs=world_size,
+            join=True,
+        )
+    else:
+        trainer.run(
+            rank=0,
+            world_size=world_size,
+            train_dataloader=train_loader,
+            val_dataloader=val_loader,
+        )
 
 
 if __name__ == "__main__":
