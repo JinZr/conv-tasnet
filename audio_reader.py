@@ -33,7 +33,7 @@ def write_wav(fname, src, sample_rate):
     output:
           None
     """
-    sf.write(fname, src, sample_rate)
+    sf.write(fname + ".wav", src, sample_rate)
 
 
 class AudioReader(object):
