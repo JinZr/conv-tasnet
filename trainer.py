@@ -66,13 +66,15 @@ class Trainer:
         resume=None,
         stop=10,
         num_epochs=100,
+        world_size=1,
     ):
         # if the cuda is available and if the gpus' type is tuple
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA device unavailable...exist")
         if not isinstance(gpuid, tuple):
             gpuid = (gpuid,)
-        self.device = torch.device("cuda:{}".format(gpuid[0]))
+        # self.device = torch.device("cuda:{}".format(gpuid[0]))
+        self.devices = [torch.device("cuda", rank) for rank in range(world_size)]
         self.gpuid = gpuid
 
         # mkdir the file of Experiment path
@@ -100,12 +102,10 @@ class Trainer:
                 )
             )
             net.load_state_dict(cpt["model_state_dict"])
-            self.net = net.to(self.device)
             self.optimizer = self.create_optimizer(
                 optimizer, optimizer_kwargs, state=cpt["optim_state_dict"]
             )
         else:
-            self.net = net.to(self.device)
             self.optimizer = self.create_optimizer(optimizer, optimizer_kwargs)
         # check model parameters
         self.param = check_parameters(self.net)
@@ -255,6 +255,8 @@ class Trainer:
     def run(self, rank, world_size, train_dataloader, val_dataloader):
         train_losses = []
         val_losses = []
+
+        self.net.to(self.devices[rank])
         if world_size > 1:
             setup_dist(rank, world_size)
             logging.info("Using DDP")

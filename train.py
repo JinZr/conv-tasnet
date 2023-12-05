@@ -23,12 +23,14 @@ def main():
 
     logger.info("Building the trainer of Conv-TasNet")
     gpuid = tuple(opt["gpu_ids"])
+    world_size = opt["world_size"]
     trainer = Trainer(
         net,
         **opt["train"],
         resume=opt["resume"],
         gpuid=gpuid,
-        optimizer_kwargs=opt["optimizer_kwargs"]
+        optimizer_kwargs=opt["optimizer_kwargs"],
+        world_size=world_size,
     )
 
     logger.info("Making the train and test data loader")
@@ -49,7 +51,6 @@ def main():
     logger.info(
         "Train data loader: {}, Test data loader: {}".format(train_loader, val_loader)
     )
-    world_size = opt["world_size"]
 
     assert world_size >= 1
     if world_size > 1:
