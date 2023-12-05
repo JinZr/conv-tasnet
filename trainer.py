@@ -178,7 +178,7 @@ class Trainer:
         losses = []
         start = time.time()
         current_step = 0
-        device = torch.device("cuda", rank)
+        device = torch.device("cuda:0")
         for egs in train_dataloader:
             current_step += 1
             egs = to_device(egs, device)
