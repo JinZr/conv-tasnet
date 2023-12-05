@@ -258,7 +258,7 @@ class Trainer:
         if world_size > 1:
             setup_dist(rank, world_size)
             logging.info("Using DDP")
-            model = DDP(model, device_ids=[rank], find_unused_parameters=True)
+            self.net = DDP(self.net, device_ids=[rank], find_unused_parameters=True)
 
         if rank == 0:
             self.save_checkpoint(best=False)
