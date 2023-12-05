@@ -73,8 +73,7 @@ class Trainer:
             raise RuntimeError("CUDA device unavailable...exist")
         if not isinstance(gpuid, tuple):
             gpuid = (gpuid,)
-        # self.device = torch.device("cuda:{}".format(gpuid[0]))
-        self.devices = [torch.device("cuda", rank) for rank in range(world_size)]
+        self.device = torch.device("cuda")
         self.gpuid = gpuid
         self.net = net
 
@@ -182,7 +181,7 @@ class Trainer:
         current_step = 0
         for egs in train_dataloader:
             current_step += 1
-            egs = to_device(egs, self.devices[rank])
+            egs = to_device(egs, self.device)
             self.optimizer.zero_grad()
             ests = data_parallel(self.net, egs["mix"], device_ids=self.gpuid)
             loss = si_snr_loss(ests, egs)
@@ -226,7 +225,7 @@ class Trainer:
         with torch.no_grad():
             for egs in val_dataloader:
                 current_step += 1
-                egs = to_device(egs, self.devices[rank])
+                egs = to_device(egs, self.device)
                 ests = data_parallel(self.net, egs["mix"], device_ids=self.gpuid)
                 loss = si_snr_loss(ests, egs)
                 losses.append(loss.item())
@@ -257,7 +256,7 @@ class Trainer:
         train_losses = []
         val_losses = []
 
-        self.net.to(self.devices[rank])
+        self.net.to(self.device)
         if world_size > 1:
             setup_dist(rank, world_size)
             logging.info("Using DDP")
