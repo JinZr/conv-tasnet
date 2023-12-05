@@ -258,7 +258,7 @@ class Trainer:
         val_losses = []
 
         torch.cuda.set_device(rank)
-        device = torch.device("cuda", rank)
+        device = torch.device("cuda:0")
         self.net.to(device)
         if world_size > 1:
             setup_dist(rank, world_size)
