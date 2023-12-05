@@ -74,7 +74,8 @@ class Trainer:
         if not isinstance(gpuid, tuple):
             gpuid = (gpuid,)
         self.gpuid = gpuid
-        self.net = net
+        device = torch.device("cuda:0")
+        self.net = net.to(device)
 
         # mkdir the file of Experiment path
         if checkpoint and not os.path.exists(checkpoint):
@@ -258,8 +259,6 @@ class Trainer:
         val_losses = []
 
         torch.cuda.set_device(rank)
-        device = torch.device("cuda:0")
-        self.net.to(device)
         if world_size > 1:
             setup_dist(rank, world_size)
             logging.info("Using DDP")
