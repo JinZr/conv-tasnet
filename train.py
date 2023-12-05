@@ -47,9 +47,7 @@ def main():
         batch_size=opt["datasets"]["batch_size"],
     )
     logger.info(
-        "Train data loader: {}, Test data loader: {}".format(
-            len(train_loader), len(val_loader)
-        )
+        "Train data loader: {}, Test data loader: {}".format(train_loader, val_loader)
     )
     world_size = opt["world_size"]
 
