@@ -259,7 +259,7 @@ class Trainer:
 
         torch.cuda.set_device(rank)
         device = torch.device("cuda", rank)
-        self.net.to(self.device)
+        self.net.to(device)
         if world_size > 1:
             setup_dist(rank, world_size)
             logging.info("Using DDP")
