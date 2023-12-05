@@ -267,7 +267,7 @@ class Trainer:
                 self.net,
                 device_ids=[rank],
                 find_unused_parameters=True,
-            ).to(device)
+            )
 
         if rank == 0:
             self.save_checkpoint(best=False)
