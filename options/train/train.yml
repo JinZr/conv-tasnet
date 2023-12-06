@@ -13,16 +13,22 @@ datasets:
   chunk_len: 4
   chunk_size: 32000 #### fs*chunk_len
   train:
-    mix_scp: /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix_truncated_filtered/mix.scp
+    mix_scp: /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix/mix.scp
     ref_scp: 
-      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix_truncated_filtered/spk1.scp
-      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix_truncated_filtered/spk2.scp
+      # - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix_truncated_filtered/spk1.scp
+      # - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix_truncated_filtered/spk2.scp
+      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix/spk1.scp
+      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix/spk2.scp
+    segments:
+      - /star-home/jinzengrui/data/LibriheavyCSS/segments_train_medium
     sr: 16000
   val:
-    mix_scp: /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/dev_2_mix_truncated_filtered/mix.scp
+    mix_scp: /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/dev_2_mix/mix.scp
     ref_scp: 
-      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/dev_2_mix_truncated_filtered/spk1.scp
-      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/dev_2_mix_truncated_filtered/spk2.scp
+      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/dev_2_mix/spk1.scp
+      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/dev_2_mix/spk2.scp
+    segments:
+      - /star-home/jinzengrui/data/LibriheavyCSS/segments_dev
     sr: 16000
 
 #### training settings: learning rate scheme, loss

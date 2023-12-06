@@ -31,19 +31,27 @@ class Datasets(Dataset):
     ref_scp: file path of ground truth audio (type: list[spk1,spk2])
     """
 
-    def __init__(self, mix_scp=None, ref_scp=None, sr=8000):
+    def __init__(self, mix_scp=None, ref_scp=None, segments=None, sr=8000):
         super(Datasets, self).__init__()
         self.mix_audio = AudioReader(mix_scp, sample_rate=sr)
         self.ref_audio = [AudioReader(r, sample_rate=sr) for r in ref_scp]
+        with open(segments, "r") as f:
+            self.segments_lines = f.readlines()
+            self.segments = {}
+            for line in self.segments_lines:
+                key, _, start, end = line.strip().split()
+                self.segments[key] = (float(start), float(end))
 
     def __len__(self):
         return len(self.mix_audio)
 
     def __getitem__(self, index):
         key = self.mix_audio.keys[index]
-        mix = self.mix_audio[key]
+        mix = self.mix_audio.load(
+            key, start=self.segments[key][0], end=self.segments[key][1]
+        )
         ref = [r[key] for r in self.ref_audio]
-        return {"mix": mix, "ref": ref}
+        return {"mix": mix, "ref": ref, "segments": self.segments[key]}
 
 
 class Spliter:
