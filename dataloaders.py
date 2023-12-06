@@ -1,6 +1,6 @@
 import random
 
-import torch.nn.functional as F
+import numpy as np
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 
@@ -94,14 +94,22 @@ class Spliter:
             # sample["mix"] = F.pad(sample["mix"], (0, gap), mode="constant")
             # sample["ref"] = [F.pad(r, (0, gap), mode="constant") for r in sample["ref"]]
             # audio_lists.append(sample)
-        # else:
+            # else:
             random_start = (
                 random.randint(0, length % self.least) if self.is_train else 0
             )
             while True:
                 if random_start + self.chunk_size > length:
                     break
-                audio_lists.append(self.chunk_audio(sample, random_start))
+                chunks = self.chunk_audio(sample, random_start)
+                refs = chunks["ref"]
+                to_append = True
+                for ref in refs:
+                    if np.count_nonzero(ref) < self.chunk_size / 3:
+                        to_append = False
+                        break
+                if to_append:
+                    audio_lists.append(chunks)
                 random_start += self.least
         return audio_lists
 

@@ -46,7 +46,7 @@ class Datasets(Dataset):
     ref_scp: file path of ground truth audio (type: list[spk1,spk2])
     """
 
-    def __init__(self, mix_scp=None, ref_scp=None, sr=8000, chunk_size=32000):
+    def __init__(self, mix_scp=None, ref_scp=None, sr=16000, chunk_size=32000):
         super(Datasets, self).__init__()
         self.mix_audio = handle_scp(mix_scp)
         self.ref_audio = [handle_scp(r) for r in ref_scp]
