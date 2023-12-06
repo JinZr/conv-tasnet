@@ -50,7 +50,10 @@ class Datasets(Dataset):
         mix = self.mix_audio.load(
             key, start=self.segments[key][0], end=self.segments[key][1]
         )
-        ref = [r[key] for r in self.ref_audio]
+        ref = [
+            r.load(key, start=self.segments[key][0], end=self.segments[key][1])
+            for r in self.ref_audio
+        ]
         return {"mix": mix, "ref": ref, "segments": self.segments[key]}
 
 
