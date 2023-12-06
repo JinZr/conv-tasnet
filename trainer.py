@@ -74,8 +74,7 @@ class Trainer:
         if not isinstance(gpuid, tuple):
             gpuid = (gpuid,)
         self.gpuid = gpuid
-        device = torch.device("cuda")
-        self.net = net.to(device)
+        self.net = net.cuda()
 
         # mkdir the file of Experiment path
         if checkpoint and not os.path.exists(checkpoint):
