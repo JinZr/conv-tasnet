@@ -17,6 +17,7 @@ def main():
 
     opt = parse(args.opt, is_tain=True)
     logger = get_logger(__name__)
+    logger.info(opt)
 
     logger.info("Building the model of Conv-TasNet")
     net = ConvTasNet(**opt["net_conf"])

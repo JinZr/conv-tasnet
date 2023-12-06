@@ -88,12 +88,13 @@ class Spliter:
         if length < self.least:
             return []
         audio_lists = []
-        if length < self.chunk_size:
-            gap = self.chunk_size - length
-            sample["mix"] = F.pad(sample["mix"], (0, gap), mode="constant")
-            sample["ref"] = [F.pad(r, (0, gap), mode="constant") for r in sample["ref"]]
-            audio_lists.append(sample)
-        else:
+        #  if length < self.chunk_size:
+        if length > self.chunk_size:
+            # gap = self.chunk_size - length
+            # sample["mix"] = F.pad(sample["mix"], (0, gap), mode="constant")
+            # sample["ref"] = [F.pad(r, (0, gap), mode="constant") for r in sample["ref"]]
+            # audio_lists.append(sample)
+        # else:
             random_start = (
                 random.randint(0, length % self.least) if self.is_train else 0
             )
@@ -135,7 +136,7 @@ class DataLoaders:
         self.spliter = Spliter(
             chunk_size=self.chunk_size,
             is_train=self.is_train,
-            least=self.chunk_size // 2,
+            least=self.chunk_size,
         )
 
     def _collate(self, batch):
