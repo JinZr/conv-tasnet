@@ -74,7 +74,7 @@ class Trainer:
         if not isinstance(gpuid, tuple):
             gpuid = (gpuid,)
         self.gpuid = gpuid
-        device = torch.device("cuda")
+        device = torch.device("cuda:{}".format(self.gpuid[0]))
         self.net = net.to(device)
 
         # mkdir the file of Experiment path
@@ -179,7 +179,7 @@ class Trainer:
         losses = []
         start = time.time()
         current_step = 0
-        device = torch.device("cuda")
+        device = torch.device("cuda:{}".format(self.gpuid[0]))
         for egs in train_dataloader:
             current_step += 1
             egs = to_device(egs, device)
@@ -223,7 +223,7 @@ class Trainer:
         losses = []
         current_step = 0
         start = time.time()
-        device = torch.device("cuda", rank)
+        device = torch.device("cuda:{}".format(self.gpuid[0]))
         with torch.no_grad():
             for egs in val_dataloader:
                 current_step += 1
