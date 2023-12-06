@@ -1,28 +1,28 @@
 #### Conv-TasNet Setting
 name: Conv_Tasnet
-gpu_ids: [0,1,2,3,6,7]
-world_size: 2
-#gpu_ids: [0]
+# gpu_ids: [0,1,2,3,6,7]
+gpu_ids: [0,1,2,3]
+world_size: 1
 epochs: 100
 
 #### Dataset Configure
 datasets:
   num_workers: 4
-  batch_size: 20
+  batch_size: 32
   fs: 16000
   chunk_len: 4
   chunk_size: 32000 #### fs*chunk_len
   train:
-    mix_scp: /home/likai/data1/create_scp/tr_mix.scp
+    mix_scp: /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix_truncated_filtered/mix.scp
     ref_scp: 
-      - /home/likai/data1/create_scp/tr_s1.scp
-      - /home/likai/data1/create_scp/tr_s2.scp
+      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix_truncated_filtered/spk1.scp
+      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/train_medium_2_mix_truncated_filtered/spk2.scp
     sr: 16000
   val:
-    mix_scp: /home/likai/data1/create_scp/cv_mix.scp
+    mix_scp: /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/dev_2_mix_truncated_filtered/mix.scp
     ref_scp: 
-      - /home/likai/data1/create_scp/cv_s1.scp
-      - /home/likai/data1/create_scp/cv_s2.scp
+      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/dev_2_mix_truncated_filtered/spk1.scp
+      - /star-home/jinzengrui/dev/espnet/egs2/librimix/enh1_medium/data/dev_2_mix_truncated_filtered/spk2.scp
     sr: 16000
 
 #### training settings: learning rate scheme, loss
@@ -57,5 +57,5 @@ net_conf:
 
 #### resume model
 resume:
-  path: /home/likai/data1/Conv-TasNet
-  resume_state: false
+  path: /star-home/jinzengrui/dev/Conv-TasNet/Conv_TasNet_Pytorch
+  resume_state: true
