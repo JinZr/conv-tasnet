@@ -88,13 +88,19 @@ class Spliter:
         if length < self.least:
             return []
         audio_lists = []
-        #  if length < self.chunk_size:
-        if length > self.chunk_size:
-            # gap = self.chunk_size - length
-            # sample["mix"] = F.pad(sample["mix"], (0, gap), mode="constant")
-            # sample["ref"] = [F.pad(r, (0, gap), mode="constant") for r in sample["ref"]]
-            # audio_lists.append(sample)
-            # else:
+        if length < self.chunk_size:
+        # if length > self.chunk_size:
+            gap = self.chunk_size - length
+            sample["mix"] = F.pad(sample["mix"], (0, gap), mode="constant")
+            sample["ref"] = [F.pad(r, (0, gap), mode="constant") for r in sample["ref"]]
+            to_append = True
+            for ref in refs:
+                if np.count_nonzero(ref) < self.chunk_size - 100:
+                    to_append = False
+                    break
+            if to_append:
+                audio_lists.append(sample)
+        else:
             random_start = (
                 random.randint(0, length % self.least) if self.is_train else 0
             )
@@ -105,7 +111,7 @@ class Spliter:
                 refs = chunks["ref"]
                 to_append = True
                 for ref in refs:
-                    if np.count_nonzero(ref) < self.chunk_size / 3:
+                    if np.count_nonzero(ref) < self.chunk_size - 100:
                         to_append = False
                         break
                 if to_append:
