@@ -25,7 +25,7 @@ def compute_num_samples(
     )
 
 
-def read_wav(fname, return_rate=False, sr=8000, start=None, end=None):
+def read_wav(fname, return_rate=False, sr=16000, start=None, end=None):
     """
     Read wavfile using Pytorch audio
     input:

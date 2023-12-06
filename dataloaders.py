@@ -31,7 +31,7 @@ class Datasets(Dataset):
     ref_scp: file path of ground truth audio (type: list[spk1,spk2])
     """
 
-    def __init__(self, mix_scp=None, ref_scp=None, segments=None, sr=8000):
+    def __init__(self, mix_scp=None, ref_scp=None, segments=None, sr=16000):
         super(Datasets, self).__init__()
         self.mix_audio = AudioReader(mix_scp, sample_rate=sr)
         self.ref_audio = [AudioReader(r, sample_rate=sr) for r in ref_scp]
